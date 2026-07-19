@@ -82,8 +82,18 @@ else:
 
 
 def process_document_sync(document_id: int):
-    """同步处理文档（本地开发模式）"""
+    """在后台线程处理文档，错误会打印到终端"""
     import threading
-    t = threading.Thread(target=_process_document_impl, args=(document_id,), daemon=True)
+    import traceback
+
+    def _safe_process():
+        try:
+            result = _process_document_impl(document_id)
+            print(f"[DocProcessor] 文档#{document_id} 处理完成: {result}")
+        except Exception:
+            print(f"[DocProcessor] 文档#{document_id} 处理失败:")
+            traceback.print_exc()
+
+    t = threading.Thread(target=_safe_process, daemon=False)
     t.start()
     return t

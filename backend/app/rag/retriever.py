@@ -116,8 +116,12 @@ def hybrid_search(query: str, k: int = 10) -> List[Document]:
     vector_store = get_vector_store()
     _rebuild_bm25_if_needed(vector_store)
 
-    # 向量检索
-    vector_docs = vector_store.similarity_search(query, k=k)
+    # 向量检索（带分数）
+    vector_results = vector_store.similarity_search_with_score(query, k=k)
+    vector_docs = []
+    for doc, score in vector_results:
+        doc.metadata["vector_score"] = round(float(score), 4)
+        vector_docs.append(doc)
 
     # BM25 关键词检索
     bm25_docs = []

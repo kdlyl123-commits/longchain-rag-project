@@ -48,9 +48,10 @@ export interface Message {
 // 引用片段
 export interface Citation {
   index?: number;
-  doc_id: number;
-  chunk_id: number;
+  doc_id?: number;
+  chunk_id?: number;
   text: string;
+  preview?: string;
   filename: string;
   score: number;
 }

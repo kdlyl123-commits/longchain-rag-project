@@ -35,32 +35,50 @@ def build_rag_chain(query: str, history_messages: list[dict] | None = None):
     # 1. 检索
     docs = get_retrieved_documents(query, top_k=10)
 
-    # 2. 重排序
+    # 2. 重排序（文档多时才做，少时直接用向量分数）
     if len(docs) > 5:
         doc_texts = [d.page_content for d in docs]
         rerank_results = rerank(query, doc_texts, top_n=5)
-
-        # 按重排序结果重建文档列表
         reranked_docs = []
         for item in rerank_results:
             idx = item["index"]
             if idx < len(docs):
                 doc = docs[idx]
-                doc.metadata["rerank_score"] = item["relevance_score"]
+                doc.metadata["final_score"] = item["relevance_score"]
                 reranked_docs.append(doc)
         docs = reranked_docs
+    else:
+        # 文档少时，用向量检索分数，归一化到 0~1
+        for doc in docs:
+            raw_score = doc.metadata.get("vector_score", 0.5)
+            # Chroma 返回的是距离，越小越相关，转为 0~1
+            doc.metadata["final_score"] = round(max(0, min(1, 1 - raw_score)), 4)
 
-    # 3. 构建知识库上下文（带编号）
+    # 3. 按分数排序
+    docs_sorted = sorted(docs, key=lambda d: d.metadata.get("final_score", 0), reverse=True)
+
+    # 全部文档给 LLM 做上下文
     context_parts = []
-    citations = []
-    for i, doc in enumerate(docs):
+    for i, doc in enumerate(docs_sorted):
         context_parts.append(f"[{i + 1}] {doc.page_content}")
+
+    # 只取 top-3，且相关度 > 0 作为引用展示（保留原始编号匹配 LLM 引用标记）
+    citations = []
+    for i, doc in enumerate(docs_sorted):
+        score_pct = round(doc.metadata.get("final_score", 0) * 100, 1)
+        if score_pct <= 0:
+            continue
+        full_text = doc.page_content
+        preview = full_text[:50] + ("..." if len(full_text) > 50 else "")
         citations.append({
-            "index": i + 1,
-            "text": doc.page_content[:200],  # 截取前 200 字
+            "index": i + 1,  # 保持和 LLM 上下文 [n] 一致的编号
+            "text": full_text,
+            "preview": preview,
             "filename": doc.metadata.get("filename", "未知"),
-            "score": round(doc.metadata.get("rerank_score", 0), 4),
+            "score": score_pct,
         })
+        if len(citations) >= 3:
+            break
 
     context = "\n\n".join(context_parts)
 

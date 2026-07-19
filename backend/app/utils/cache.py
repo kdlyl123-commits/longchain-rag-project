@@ -78,7 +78,13 @@ def cache_invalidate_pattern(pattern: str):
         if keys:
             _redis_client.delete(*keys)
     else:
+        import fnmatch
         _clean_expired()
+        with _lock:
+            matched = [k for k in _memory_cache if fnmatch.fnmatch(k, pattern)]
+            for k in matched:
+                _memory_cache.pop(k, None)
+                _memory_ttl.pop(k, None)
 
 
 def cache_result(ttl: int = 600, prefix: str = "cache"):

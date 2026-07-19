@@ -127,9 +127,12 @@ async def reprocess_document(
     doc.error_message = None
     await db.flush()
 
-    # 重新触发异步处理
-    from app.tasks.document_tasks import process_document
-    process_document.delay(doc.id)
+    # 重新触发处理（Celery 异步 或 本地线程）
+    from app.tasks.document_tasks import process_document, process_document_sync
+    if process_document is not None:
+        process_document.delay(doc.id)
+    else:
+        process_document_sync(doc.id)
 
     return {"message": "已重新加入处理队列"}
 

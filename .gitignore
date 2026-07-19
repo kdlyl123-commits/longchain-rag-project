@@ -1,26 +1,43 @@
-# 环境变量 (包含 API Key，绝对不能提交)
+# === 环境变量 (含 API Key，绝对不能提交) ===
 .env
+backend/.env
 
-# Python
+# === Python ===
 __pycache__/
 *.py[cod]
 *.egg-info/
 .venv/
 venv/
 dist/
+*.db
+*.db-journal
+*.db-wal
 
-# Node
+# === Node ===
 node_modules/
 frontend/dist/
 
-# IDE
+# === IDE ===
 .vscode/
 .idea/
 
-# Docker
+# === Docker ===
 chroma_data/
 postgres_data/
 minio_data/
 
-# 上传文件
+# === 上传文件 ===
 backend/uploads/
+backend/app/uploads/
+backend/chroma_data/
+
+# === 本地数据 ===
+本地知识库/
+
+# === 测试 ===
+.pytest_cache/
+backend/.pytest_cache/
+backend/test.db
+
+# === Claude Code (保留 skills/commands，排除 settings.local) ===
+.claude/settings.local.json
