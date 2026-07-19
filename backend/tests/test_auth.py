@@ -28,7 +28,7 @@ class TestRegister:
 
     async def test_register_short_password(self, client):
         resp = await client.post("/api/auth/register", json={
-            "username": "test", "password": "123"
+            "username": "test", "password": "1234567"  # 7位 < 8
         })
         assert resp.status_code == 422
 

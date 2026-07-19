@@ -35,18 +35,18 @@ class Settings(BaseSettings):
 
     # MinIO（STORAGE_MODE=local 时用本地文件）
     minio_endpoint: str = ""
-    minio_access_key: str = "minioadmin"
-    minio_secret_key: str = "minioadmin"
+    minio_access_key: str = ""
+    minio_secret_key: str = ""
     minio_bucket: str = "knowledge-base"
 
-    # JWT
-    jwt_secret_key: str = "dev-secret-key-change-in-production"
+    # JWT（生产环境必须通过环境变量设置强密钥）
+    jwt_secret_key: str = ""
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 1440
 
-    # 管理员
+    # 管理员（仅首次启动时使用，之后修改密码不受影响）
     admin_username: str = "admin"
-    admin_password: str = "123456"
+    admin_password: str = ""
 
     # 应用
     app_host: str = "0.0.0.0"

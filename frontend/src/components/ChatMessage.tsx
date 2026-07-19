@@ -7,6 +7,8 @@ import {
   UpOutlined,
 } from "@ant-design/icons";
 import ReactMarkdown from "react-markdown";
+import rehypeSanitize from "rehype-sanitize";
+import remarkGfm from "remark-gfm";
 import type { Message, Citation } from "../types";
 
 const { Text } = Typography;
@@ -114,7 +116,9 @@ export default function ChatMessage({ message, streamingContent }: Props) {
           </div>
         ) : (
           <div className="markdown-body" style={{ fontSize: 14 }}>
-            <ReactMarkdown>{displayContent}</ReactMarkdown>
+            <ReactMarkdown rehypePlugins={[rehypeSanitize]} remarkPlugins={[remarkGfm]}>
+              {displayContent}
+            </ReactMarkdown>
           </div>
         )}
 

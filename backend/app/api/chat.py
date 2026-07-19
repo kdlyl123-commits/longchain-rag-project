@@ -78,11 +78,12 @@ async def delete_conversation(
 @router.get("/conversations/{conversation_id}/messages", response_model=list[MessageResponse])
 async def get_messages(
     conversation_id: int,
+    limit: int = 100,
+    offset: int = 0,
     current_user: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """获取会话历史消息"""
-    # 验证会话所有权
+    """获取会话历史消息（分页）"""
     result = await db.execute(
         select(Conversation).where(Conversation.id == conversation_id)
     )
@@ -94,6 +95,8 @@ async def get_messages(
         select(Message)
         .where(Message.conversation_id == conversation_id)
         .order_by(Message.created_at)
+        .offset(offset)
+        .limit(limit)
     )
     messages = result.scalars().all()
     return messages

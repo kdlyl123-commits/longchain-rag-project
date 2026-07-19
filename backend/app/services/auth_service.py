@@ -84,7 +84,9 @@ async def change_user_password(
 
 
 async def init_admin_user():
-    """初始化管理员账号"""
+    """初始化管理员账号（仅在不存在时创建，不覆盖已有密码）"""
+    import logging
+    logger = logging.getLogger(__name__)
     from app.database import async_session_factory
 
     async with async_session_factory() as db:
@@ -102,8 +104,9 @@ async def init_admin_user():
             )
             db.add(admin)
             await db.commit()
-            print(f"[初始化] 管理员账号已创建: {settings.admin_username}")
+            logger.info("管理员账号已创建")
         else:
-            admin.role = "admin"
-            admin.password_hash = hash_password(settings.admin_password)
-            await db.commit()
+            # 确保管理员角色，但绝不覆盖密码
+            if admin.role != "admin":
+                admin.role = "admin"
+                await db.commit()

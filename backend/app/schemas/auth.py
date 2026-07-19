@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, field_validator
 
 class RegisterRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50, description="用户名")
-    password: str = Field(..., min_length=6, max_length=100, description="密码")
+    password: str = Field(..., min_length=8, max_length=100, description="密码（至少8位）")
     email: str | None = Field(None, max_length=100, description="邮箱")
 
 
@@ -20,7 +20,7 @@ class TokenResponse(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     old_password: str = Field(..., description="旧密码")
-    new_password: str = Field(..., min_length=6, max_length=100, description="新密码")
+    new_password: str = Field(..., min_length=8, max_length=100, description="新密码（至少8位）")
 
     @field_validator("new_password")
     @classmethod

@@ -25,13 +25,24 @@ def _get_upload_dir() -> str:
     return upload_dir
 
 
+def _sanitize_filename(filename: str) -> str:
+    """消毒文件名，移除路径穿越字符和特殊字符"""
+    import re
+    # 只保留安全字符：中文、字母、数字、下划线、点、短横线
+    safe = re.sub(r'[^\w一-鿿\.\-]', '_', filename)
+    # 移除路径穿越序列
+    safe = safe.replace('..', '').replace('/', '_').replace('\\', '_')
+    return safe or 'unnamed'
+
+
 def _local_upload(file_content: bytes, filename: str) -> str:
     """上传到本地文件系统，返回相对路径"""
+    safe_name = _sanitize_filename(filename)
     date_prefix = datetime.now().strftime("%Y/%m/%d")
     dir_path = os.path.join(_get_upload_dir(), date_prefix)
     os.makedirs(dir_path, exist_ok=True)
 
-    object_name = f"{date_prefix}/{uuid.uuid4().hex}_{filename}"
+    object_name = f"{date_prefix}/{uuid.uuid4().hex}_{safe_name}"
     file_path = os.path.join(_get_upload_dir(), object_name)
 
     with open(file_path, "wb") as f:

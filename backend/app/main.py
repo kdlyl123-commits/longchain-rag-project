@@ -10,10 +10,15 @@ settings = get_settings()
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """应用启动/关闭时的生命周期管理"""
+    # 安全检查：密钥不能为空
+    if not settings.jwt_secret_key:
+        raise RuntimeError("JWT_SECRET_KEY 未设置，请在 .env 中配置一个强随机密钥")
+    if not settings.admin_password:
+        raise RuntimeError("ADMIN_PASSWORD 未设置，请在 .env 中配置管理员密码")
+
     await init_db()
     from app.services.auth_service import init_admin_user
     await init_admin_user()
-    # 存储初始化（MinIO 模式才需要创建 bucket）
     from app.services.document_service import ensure_storage
     ensure_storage()
     yield
@@ -30,8 +35,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:3000", "http://localhost:80", "http://127.0.0.1:3000"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 from app.api import auth, chat, knowledge

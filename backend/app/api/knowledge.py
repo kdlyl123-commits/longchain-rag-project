@@ -73,8 +73,10 @@ async def upload_document(
             user_id=current_user["id"],
         )
         return doc
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"上传失败: {str(e)}")
+    except Exception:
+        import logging
+        logging.getLogger(__name__).exception("文档上传处理失败")
+        raise HTTPException(status_code=500, detail="上传失败，请稍后重试")
 
 
 @router.delete("/documents/{document_id}")

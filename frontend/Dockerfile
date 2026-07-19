@@ -8,11 +8,16 @@ RUN npm run build
 
 # 运行阶段
 FROM nginx:alpine
+# 非 root 用户（nginx 镜像默认有 nginx 用户）
+RUN touch /var/run/nginx.pid && chown -R nginx:nginx /var/run/nginx.pid /usr/share/nginx/html /var/cache/nginx
 COPY --from=builder /app/dist /usr/share/nginx/html
-# nginx 配置直接写在 Dockerfile 里，避免跨上下文引用
 RUN echo 'server { \
     listen 80; \
     server_name localhost; \
+    add_header X-Frame-Options "SAMEORIGIN" always; \
+    add_header X-Content-Type-Options "nosniff" always; \
+    add_header X-XSS-Protection "1; mode=block" always; \
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always; \
     location / { \
         root /usr/share/nginx/html; \
         index index.html; \
@@ -28,5 +33,6 @@ RUN echo 'server { \
         proxy_read_timeout 300s; \
     } \
 }' > /etc/nginx/conf.d/default.conf
+USER nginx
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]

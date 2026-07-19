@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.schemas.auth import (
@@ -8,6 +8,7 @@ from app.schemas.auth import (
     ChangePasswordRequest,
     UserResponse,
 )
+from app.middleware.rate_limit import check_rate_limit
 from app.services import auth_service
 from app.middleware.auth import get_current_user
 
@@ -25,7 +26,13 @@ async def register(req: RegisterRequest, db: AsyncSession = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(req: LoginRequest, db: AsyncSession = Depends(get_db)):
+async def login(
+    req: LoginRequest,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """用户登录（含频率限制）"""
+    await check_rate_limit(request)
     """用户登录"""
     try:
         user = await auth_service.authenticate_user(db, req.username, req.password)

@@ -3,7 +3,7 @@ from pydantic import BaseModel, Field
 
 
 class QueryRequest(BaseModel):
-    content: str = Field(..., min_length=1, description="用户问题")
+    content: str = Field(..., min_length=1, max_length=5000, description="用户问题")
 
 
 class CreateConversationRequest(BaseModel):
