@@ -11,8 +11,19 @@ if _use_sqlite:
     engine = create_async_engine(
         settings.database_url,
         echo=False,
-        connect_args={"check_same_thread": False},
+        connect_args={
+            "check_same_thread": False,
+            "timeout": 30,  # 写锁等待最长 30 秒
+        },
     )
+    # 开启 WAL 模式提升并发读写性能
+    from sqlalchemy import event
+    @event.listens_for(engine.sync_engine, "connect")
+    def _set_sqlite_pragma(dbapi_connection, connection_record):
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL;")
+        cursor.execute("PRAGMA busy_timeout=5000;")
+        cursor.close()
 else:
     engine = create_async_engine(
         settings.database_url,

@@ -128,7 +128,7 @@ async def query_knowledge_base(
         citations_data = None
 
         try:
-            async for chunk in stream_rag_response(req.content, history_messages):
+            async for chunk in stream_rag_response(req.content, history_messages, dry_run=req.dry_run):
                 # 解析引用数据
                 if chunk.startswith("data: ") and '"type": "citations"' in chunk:
                     try:
