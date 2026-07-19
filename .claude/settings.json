@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(pip install *)",
-      "Bash(python -c \"from app.config import get_settings; s = get_settings\\(\\); print\\(f'Config OK: model={s.llm_model}, embedding={s.embedding_model}'\\)\")"
+      "Bash(python -c \"from app.config import get_settings; s = get_settings\\(\\); print\\(f'Config OK: model={s.llm_model}, embedding={s.embedding_model}'\\)\")",
+      "Bash(git add *)"
     ]
   }
 }
